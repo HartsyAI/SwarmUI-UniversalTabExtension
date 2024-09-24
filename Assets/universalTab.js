@@ -1,45 +1,109 @@
 ﻿document.addEventListener('DOMContentLoaded', function () {
+    const maxRetries = 5; // Maximum number of retries
+    const retryInterval = 1000; // Retry interval in milliseconds
+    let retryCount = 0; // Current retry count
+    let hartsyCoreLoaded = false; // Flag for HartsyCore load state
 
-    // Function to modify the UniversalTab content with dynamic iframe and settings button
-    function modifyUniversalTabContent(iframeUrl = 'https://hartsy.ai') {
-        const universalTabContent = document.getElementById('UniversalTab');
-        if (!universalTabContent) {
-            console.error('Universal tab content container not found');
-            return;
+    // Function to check if HartsyCore has been loaded
+    function isHartsyCoreLoaded() {
+        const hartsyCoreContent = document.getElementById('hartsyCoreContent');
+        if (hartsyCoreContent) {
+            hartsyCoreLoaded = true;
+            return true;
         }
+        else {
+            console.error('HartsyCore not loaded retrying in 1 second...');
+            setTimeout(isHartsyCoreLoaded, 1000);
+            return false;
+        }
+    }
 
-        // Replace the content for the UniversalTab with settings button and iframe
-        universalTabContent.innerHTML = `
-            <div class="card" style="position: relative;">
+    // Function to create the tab button
+    function createTabButton(tabId, tabName) {
+        isHartsyCoreLoaded();
+        console.log(`Creating tab button with Name: ${tabName} and ID: ${tabId}`);
+        return `
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" id="${tabId}-button" data-bs-toggle="tab" href="#${tabId}" role="tab" aria-controls="${tabId}" aria-selected="false">${tabName}</a>
+            </li>
+        `;
+    }
+
+    // Function to create the tab content
+    function createTabContent(tabId, tabName = 'New Tab', iframeUrl = 'https://hartsy.ai') {
+        return `
+            <div class="card" style="position: relative;" id="${tabId}">
                 <div class="card-body">
-                    <div id="settingsPanel" class="settings-panel" style="display:none; position:absolute; top:20px; right:10px; z-index:1000; background-color: inherit; border:1px solid #ccc; padding:10px;">
+                    <div id="settingsPanel-${tabId}" class="settings-panel" style="display:none; position:absolute; top:20px; right:10px; z-index:1000; background-color: inherit; border:1px solid #ccc; padding:10px;">
                         <div>
-                            <label for="tabNameInput">Tab Name:</label>
-                            <input type="text" id="tabNameInput" class="form-control" placeholder="Enter tab name">
+                            <label for="tabNameInput-${tabId}">Tab Name:</label>
+                            <input type="text" id="tabNameInput-${tabId}" class="form-control" value="${tabName}" placeholder="Enter tab name">
                         </div>
                         <div>
-                            <label for="iframeUrlInput">Tab URL:</label>
-                            <input type="url" id="iframeUrlInput" class="form-control" placeholder="Enter URL">
+                            <label for="iframeUrlInput-${tabId}">Tab URL:</label>
+                            <input type="url" id="iframeUrlInput-${tabId}" class="form-control" value="${iframeUrl}" placeholder="Enter URL">
                         </div>
-                        <button id="saveSettingsButton" class="basic-button translate">Save</button>
-                        <button id="addNewTabButton" class="basic-button translate">Add New Tab</button>
+                        <button id="saveSettingsButton-${tabId}" class="basic-button translate">Save</button>
+                        <button id="addNewTabButton-${tabId}" class="basic-button translate">Add New Tab</button>
                     </div>
-                    <button id="settingsToggleButton" class="btn btn-secondary" style="position:absolute; top:10px; right:10px; z-index:1000;">⚙️</button>
-                    <iframe id="universalIframe" src="${iframeUrl}" style="height: 100vh; width: 100vw;"></iframe>
+                    <button id="settingsToggleButton-${tabId}" class="btn btn-secondary" style="position:absolute; top:10px; right:10px; z-index:1000;">⚙️</button>
+                    <div id="tabHeader-${tabId}" class="tab-header" style="font-weight: bold;">${tabName}</div>
+                    <iframe id="universalIframe-${tabId}" src="${iframeUrl}" style="height: 100vh; width: 100vw;"></iframe>
                 </div>
             </div>
         `;
-        document.getElementById('settingsToggleButton').addEventListener('click', toggleSettingsPanel);
-        document.getElementById('saveSettingsButton').addEventListener('click', saveSettings);
-        document.getElementById('addNewTabButton').addEventListener('click', addNewTab);
-
-        // Enable dragging of the settings panel, but exclude input fields
-        makePanelDraggable(document.getElementById('settingsPanel'));
     }
 
-    // Function to toggle the visibility of the settings panel
-    function toggleSettingsPanel() {
-        const settingsPanel = document.getElementById('settingsPanel');
+    // Function to update or add a tab (tab button + content)
+    function updateOrAddTab(tabId, tabName = 'New Tab', iframeUrl = 'https://example.com') {
+        function tryUpdateOrAddTab() {
+            let container = document.getElementById(tabId);
+            console.log('updateOrAddTab with ID:', tabId);
+            if (!container) {
+                // Try to find the tab container and retry if it's not found
+                const tabNavContainer = document.getElementById('usertablist');
+                if (!tabNavContainer) {
+                    retryCount++;
+                    if (retryCount < maxRetries) {
+                        console.log(`TabNav not found, retrying in ${retryInterval / 1000} seconds...`);
+                        setTimeout(tryUpdateOrAddTab, retryInterval);
+                    } else {
+                        console.error('TabNav element not found after maximum retries');
+                    }
+                    return;
+                }
+                // Add tab button
+                const newTabButton = document.createElement('li');
+                newTabButton.innerHTML = createTabButton(tabId, tabName);
+                console.log(`Adding tab button ${tabId}`);
+                tabNavContainer.appendChild(newTabButton);
+
+                // Add tab content
+                container = document.createElement('div');
+                document.getElementById('hartsyCoreContent').appendChild(container);
+            }
+
+            container.innerHTML = createTabContent(tabId, tabName, iframeUrl);
+            document.getElementById(`settingsToggleButton-${tabId}`).addEventListener('click', () => toggleSettingsPanel(tabId));
+            document.getElementById(`saveSettingsButton-${tabId}`).addEventListener('click', () => saveSettings(tabId));
+            document.getElementById(`addNewTabButton-${tabId}`).addEventListener('click', () => addNewTab());
+
+            // Activate the tab
+            const tabButtonElement = document.getElementById(`${tabId}-button`);
+            if (!tabButtonElement) {
+                console.log(`Tab button with id ${tabId}-button not found`);
+                return;
+            }
+            const tabTrigger = new bootstrap.Tab(tabButtonElement);
+            tabTrigger.show();
+        }
+        tryUpdateOrAddTab(); // Start the retry process
+    }
+
+    // Toggle the settings panel for each tab
+    function toggleSettingsPanel(tabId) {
+        const settingsPanel = document.getElementById(`settingsPanel-${tabId}`);
+        console.log(`Toggling settings for tab ${tabId}`);
         if (settingsPanel.style.display === 'none') {
             settingsPanel.style.display = 'block';
         } else {
@@ -47,87 +111,56 @@
         }
     }
 
-    // Function to open the settings modal and apply changes
-    function saveSettings() {
-        const tabNameInput = document.getElementById('tabNameInput').value.trim();
-        const iframeUrlInput = document.getElementById('iframeUrlInput').value.trim();
-        if (!tabNameInput) {
+    // Save settings: tab name and iframe URL
+    function saveSettings(tabId) {
+        const tabName = document.getElementById(`tabNameInput-${tabId}`).value.trim();
+        const iframeUrl = document.getElementById(`iframeUrlInput-${tabId}`).value.trim();
+        if (!tabName) {
             console.error('Tab name is required');
             return;
         }
-        if (!iframeUrlInput || !isValidURL(iframeUrlInput)) {
-            console.error('Valid iFrame URL is required');
+        if (!iframeUrl || !isValidURL(iframeUrl)) {
+            console.error('Valid iframe URL is required');
             return;
         }
-        // Set new tab name
-        const universalTabButton = document.getElementById('universaltabbutton');
-        if (universalTabButton) {
-            universalTabButton.textContent = tabNameInput;
+        // Update the tab name in the button
+        const tabButton = document.getElementById(`${tabId}-button`);
+        console.log(`Saving settings for tab ${tabId}`);
+        if (tabButton) {
+            tabButton.textContent = tabName;
         } else {
-            console.error('Unable to find UniversalTab button to set new name');
+            console.error('Unable to find tab button to update name');
         }
-        modifyUniversalTabContent(iframeUrlInput);
-        console.log('Tab name and URL updated');
+        // Update the iframe URL
+        const iframe = document.getElementById(`universalIframe-${tabId}`);
+        if (iframe) {
+            iframe.src = iframeUrl;
+        }
     }
 
-    // Helper function to validate URLs
-    function isValidURL(string) {
+    // Validate URL format
+    function isValidURL(urlString) {
         try {
-            new URL(string);
+            new URL(urlString);
             return true;
         } catch (_) {
             return false;
         }
     }
 
-    // Function to check if the Universal tab is available and modify its content
-    function checkAndModifyTab() {
-        const universalTabButton = document.getElementById('universaltabbutton');
-        if (universalTabButton) {
-            modifyUniversalTabContent();
-        } else {
-            console.log('Universal tab not found, retrying in 1 second...');
-            setTimeout(checkAndModifyTab, 1000); // Retry after 1 second
-        }
+    // Function to add a new tab
+    function addNewTab() {
+        const newTabId = 'UniversalTab-' + Date.now(); // Generate unique tab ID
+        console.log('Creating new tab with ID:', newTabId);
+        updateOrAddTab(newTabId, 'New Tab', 'https://hartsy.ai');
     }
-    checkAndModifyTab();
 
-    // Function to make the settings panel draggable
-    function makePanelDraggable(panel) {
-        let offsetX = 0, offsetY = 0, mouseX = 0, mouseY = 0;
-        let isDragging = false;
+    // Initialize the first UniversalTab on page load
+    updateOrAddTab('UniversalTab', 'UniversalTab', 'https://hartsy.ai');
 
-        // Disable dragging if clicking on input, textarea, button, or select elements
-        panel.addEventListener('mousedown', function (e) {
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'BUTTON' || e.target.tagName === 'SELECT') {
-                return; // Don't allow dragging when interacting with form fields
-            }
-            e.preventDefault();
-            isDragging = true;
-            mouseX = e.clientX;
-            mouseY = e.clientY;
-
-            document.onmouseup = stopDraggingPanel;
-            document.onmousemove = dragPanel;
-        });
-
-        function dragPanel(e) {
-            if (!isDragging) return;
-            e.preventDefault();
-            offsetX = mouseX - e.clientX;
-            offsetY = mouseY - e.clientY;
-            mouseX = e.clientX;
-            mouseY = e.clientY;
-
-            // Update panel position
-            panel.style.top = (panel.offsetTop - offsetY) + "px";
-            panel.style.left = (panel.offsetLeft - offsetX) + "px";
-        }
-
-        function stopDraggingPanel() {
-            isDragging = false;
-            document.onmouseup = null;
-            document.onmousemove = null;
-        }
+    // Add listener to the "Add New Tab" button (if it exists outside the tabs)
+    const addNewTabButton = document.getElementById('addNewTabButton');
+    if (addNewTabButton) {
+        addNewTabButton.addEventListener('click', addNewTab);
     }
 });
