@@ -100,6 +100,13 @@
         tryUpdateOrAddTab(); // Start the retry process
     }
 
+    // Function to add a new tab
+    function addNewTab() {
+        const newTabId = 'UniversalTab-' + Date.now(); // Generate unique tab ID
+        console.log('Creating new tab with ID:', newTabId);
+        updateOrAddTab(newTabId, 'New Tab', 'https://hartsy.ai');
+    }
+
     // Toggle the settings panel for each tab
     function toggleSettingsPanel(tabId) {
         const settingsPanel = document.getElementById(`settingsPanel-${tabId}`);
@@ -146,13 +153,6 @@
         } catch (_) {
             return false;
         }
-    }
-
-    // Function to add a new tab
-    function addNewTab() {
-        const newTabId = 'UniversalTab-' + Date.now(); // Generate unique tab ID
-        console.log('Creating new tab with ID:', newTabId);
-        updateOrAddTab(newTabId, 'New Tab', 'https://hartsy.ai');
     }
 
     // Initialize the first UniversalTab on page load
