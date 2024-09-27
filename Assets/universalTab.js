@@ -119,46 +119,42 @@
     }
 
     // Save settings: tab name and iframe URL
-    function saveSettings(tabId) {
+    async function saveSettings(tabId) {
         const tabName = document.getElementById(`tabNameInput-${tabId}`).value.trim();
         const iframeUrl = document.getElementById(`iframeUrlInput-${tabId}`).value.trim();
         if (!tabName) {
             console.error('Tab name is required');
             return;
         }
-        if (!iframeUrl || !isValidURL(iframeUrl)) {
-            console.error('Valid iframe URL is required');
-            return;
-        }
-        // Update the tab name in the button
-        const tabButton = document.getElementById(`${tabId}-button`);
-        console.log(`Saving settings for tab ${tabId}`);
-        if (tabButton) {
-            tabButton.textContent = tabName;
-        } else {
-            console.error('Unable to find tab button to update name');
-        }
-        // Update the iframe URL
-        const iframe = document.getElementById(`universalIframe-${tabId}`);
-        if (iframe) {
-            iframe.src = iframeUrl;
-        }
+        await genericRequest('CheckValidURL', { url: iframeUrl }, data => {
+            // Check the result of the URL validation within the callback
+            if (data.valid) {
+                console.log("URL is valid:", data.message);
+                // Update the tab name in the button
+                const tabButton = document.getElementById(`${tabId}-button`);
+                console.log(`Saving settings for tab ${tabId}`);
+                if (tabButton) {
+                    tabButton.textContent = tabName;
+                } else {
+                    console.error(`Element with ID ${tabId}-button not found before the request`);
+                }
+                // Update the iframe URL
+                const iframe = document.getElementById(`universalIframe-${tabId}`);
+                if (iframe) {
+                    iframe.src = iframeUrl;
+                }
+            } else {
+                console.error('URL is invalid:', data.message, data.error);
+            }
+            if (!iframeUrl || !data.valid) {
+                console.error('Valid iframe URL is required');
+                return;
+            }
+        });
     }
-
-    // Validate URL format
-    function isValidURL(urlString) {
-        try {
-            new URL(urlString);
-            return true;
-        } catch (_) {
-            return false;
-        }
-    }
-
     // Initialize the first UniversalTab on page load
     updateOrAddTab('UniversalTab', 'UniversalTab', 'https://hartsy.ai');
-
-    // Add listener to the "Add New Tab" button (if it exists outside the tabs)
+    // Add listener to the "Add New Tab" button
     const addNewTabButton = document.getElementById('addNewTabButton');
     if (addNewTabButton) {
         addNewTabButton.addEventListener('click', addNewTab);
