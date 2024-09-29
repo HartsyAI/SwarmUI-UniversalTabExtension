@@ -41,7 +41,7 @@ The UniversalTab Extension for SwarmUI allows you to add a new tab that is an iF
 * Customize the URL of the webpage and the tab name to display in the new tab.
 * Currently, only one extra tab can be added, and it does not persist across refreshes or restarts.
 
-> [!INFO]
+> [!NOTE]
 > Future Features:
 > Add the ability to persist tabs across refreshes and restarts.
 > Allow users Swarm instance to interact with the iFrame content.
