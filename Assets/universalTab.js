@@ -47,7 +47,6 @@
                         <button id="addNewTabButton-${tabId}" class="basic-button translate">Add New Tab</button>
                     </div>
                     <button id="settingsToggleButton-${tabId}" class="btn btn-secondary" style="position:absolute; top:10px; right:10px; z-index:1000;">⚙️</button>
-                    <div id="tabHeader-${tabId}" class="tab-header" style="font-weight: bold;">${tabName}</div>
                     <iframe id="universalIframe-${tabId}" src="${iframeUrl}" style="height: 100vh; width: 100vw;"></iframe>
                 </div>
             </div>

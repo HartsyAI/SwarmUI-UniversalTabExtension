@@ -30,6 +30,10 @@ The UniversalTab Extension for SwarmUI allows you to add a new tab that is an iF
 - Huggingface or Hartsy.AI for model downloads and image uploads.
 - Literally anything you want that supports iFrames.
 
+> [!WARNING]
+> [HartsyCore](https://github.com/HartsyAI/SwarmUI-HartsyCore) is a critical component for all Hartsy extensions. Ensure it is installed and functioning correctly before installing other Hartsy extensions.
+> Always back up your SwarmUI configuration before making changes.
+
 ## Features
 ------------
 
