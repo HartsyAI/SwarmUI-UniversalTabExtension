@@ -8,7 +8,7 @@ namespace Hartsy.Extensions.UniversalTabExtension
     {
         public override void OnFirstInit()
         {
-            Logs.Info("UniversalTabExtension started.");
+            Logs.Info("UniversalTabExtension Version 0.2 started.");
             ScriptFiles.Add("Assets/universalTab.js");
         }
 

@@ -3,33 +3,6 @@
  * Adds event listeners and prepares the first universal tab.
  */
 document.addEventListener('DOMContentLoaded', function () {
-    const maxRetries = 5; // Maximum number of retries
-    const retryInterval = 1000; // Retry interval in milliseconds
-    let retryCount = 0; // Current retry count
-    let hartsyCoreLoaded = false; // Flag for HartsyCore load state
-
-    /**
-     * Checks if HartsyCore has been loaded by searching for the hartsyCoreContent element.
-     * Retries until `maxRetries` is reached.
-     * @returns {boolean} True if HartsyCore is loaded, otherwise retries.
-     */
-    function isHartsyCoreLoaded() {
-        const hartsyCoreContent = document.getElementById('hartsyCoreContent');
-        if (hartsyCoreContent) {
-            console.log('HartsyCore loaded successfully.');
-            hartsyCoreLoaded = true;
-            return true;
-        }
-        if (retryCount >= maxRetries) {
-            console.error('HartsyCore failed to load after maximum retries.');
-            return false;
-        }
-        retryCount++;
-        console.warn(`HartsyCore not loaded. Retrying ${retryCount}/${maxRetries} in ${retryInterval / 1000} seconds...`);
-        setTimeout(isHartsyCoreLoaded, retryInterval);
-        return false;
-    }
-
     /**
      * Creates the HTML for a new tab button.
      * @param {string} tabId - The unique identifier for the tab.
@@ -37,7 +10,6 @@ document.addEventListener('DOMContentLoaded', function () {
      * @returns {string} HTML string for the tab button.
      */
     function createTabButton(tabId, tabName) {
-        isHartsyCoreLoaded();
         console.log(`Creating tab button with Name: ${tabName} and ID: ${tabId}`);
         return `
             <li class="nav-item" role="presentation">
@@ -55,6 +27,7 @@ document.addEventListener('DOMContentLoaded', function () {
      */
     function createTabContent(tabId, tabName = 'New Tab', iframeUrl = 'https://hartsy.ai') {
         return `
+        <div class="tab-pane" id="${tabId}" role="tabpanel" aria-labelledby="${tabId}-button">
             <div class="card" style="position: relative;" id="${tabId}">
                 <div class="card-body">
                     <div id="settingsPanel-${tabId}" class="settings-panel" style="display:none; position:absolute; top:20px; right:10px; z-index:1000; background-color: inherit; border:1px solid #ccc; padding:10px;">
@@ -73,59 +46,41 @@ document.addEventListener('DOMContentLoaded', function () {
                     <iframe id="universalIframe-${tabId}" src="${iframeUrl}" style="height: 100vh; width: 100vw;"></iframe>
                 </div>
             </div>
-        `;
+        </div>
+    `;
     }
 
     /**
-    * Updates an existing tab or adds a new one if it doesn't exist.
-    * @param {string} tabId - The unique identifier for the tab.
-    * @param {string} [tabName='New Tab'] - The display name of the tab.
-    * @param {string} [iframeUrl='https://example.com'] - The URL to be displayed in the iframe.
-    */
+     * Updates an existing tab or adds a new one if it doesn't exist.
+     * @param {string} tabId - The unique identifier for the tab.
+     * @param {string} [tabName='New Tab'] - The display name of the tab.
+     * @param {string} [iframeUrl='https://example.com'] - The URL to be displayed in the iframe.
+     */
     function updateOrAddTab(tabId, tabName = 'New Tab', iframeUrl = 'https://example.com') {
-        // Ensure the HartsyCore content container exists
-        const hartsyCoreContent = document.getElementById('hartsyCoreContent');
-        if (!hartsyCoreContent) {
-            console.error('HartsyCore content not found. Unable to add or update tab.');
+        // Ensure the Utilities tab content container exists
+        const utilitiesTab = document.getElementById('utilities_tab');
+        if (!utilitiesTab) {
+            console.error('Utilities tab content not found. Unable to add or update tab.');
             return;
         }
-
-        // Check if the tab content already exists, if not, create a new one
-        let container = document.getElementById(tabId);
-        if (!container) {
-            // Create new tab button and append it to the tab navigation
-            const tabNavContainer = document.getElementById('usertablist');
-            if (!tabNavContainer) {
-                console.error('Tab navigation container not found. Cannot create new tab.');
-                return;
-            }
-            const newTabButton = document.createElement('li');
-            newTabButton.innerHTML = createTabButton(tabId, tabName);
-            tabNavContainer.appendChild(newTabButton);
-
-            // Create a new tab content container
-            container = document.createElement('div');
-            container.classList.add('tab-pane', 'fade'); // Ensure Bootstrap tab classes are added
-            container.id = tabId; // Use the unique tabId for the container ID
-            hartsyCoreContent.appendChild(container);
+        let tabList = utilitiesTab.querySelector('.nav-tabs');
+        let tabContentContainer = utilitiesTab.querySelector('.tab-content');
+        if (!tabList || !tabContentContainer) {
+            console.error('Utilities tab navigation or content container not found. Cannot create new tab.');
+            return;
         }
-
-        // Update the tab content
-        container.innerHTML = createTabContent(tabId, tabName, iframeUrl);
-
+        tabList.insertAdjacentHTML('afterbegin', createTabButton(tabId, tabName));
+        // Create the tab content
+        const universalTabContent = createTabContent(tabId, tabName, iframeUrl);
+        if (tabContentContainer) {
+            tabContentContainer.insertAdjacentHTML('beforeend', universalTabContent);
+        } else {
+            console.error('Tab content container not found.');
+        }
         // Add event listeners to the new tab's buttons
         document.getElementById(`settingsToggleButton-${tabId}`).addEventListener('click', () => toggleSettingsPanel(tabId));
         document.getElementById(`saveSettingsButton-${tabId}`).addEventListener('click', () => saveSettings(tabId));
         document.getElementById(`addNewTabButton-${tabId}`).addEventListener('click', () => addNewTab());
-
-        // Activate the new tab
-        const tabButtonElement = document.getElementById(`${tabId}-button`);
-        if (tabButtonElement) {
-            const tabTrigger = new bootstrap.Tab(tabButtonElement);
-            tabTrigger.show();
-        } else {
-            console.error(`Tab button with ID ${tabId}-button not found.`);
-        }
     }
 
     /**
@@ -143,7 +98,8 @@ document.addEventListener('DOMContentLoaded', function () {
      * @param {string} tabId - The unique identifier for the tab.
      */
     function toggleSettingsPanel(tabId) {
-        const settingsPanel = document.getElementById(`settingsPanel-${tabId}`);
+        const universalTab = document.getElementById(tabId);
+        const settingsPanel = universalTab.querySelector(`#settingsPanel-${tabId}`);
         console.log(`Toggling settings for tab ${tabId}`);
         if (settingsPanel.style.display === 'none') {
             settingsPanel.style.display = 'block';
@@ -167,8 +123,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         await genericRequest('CheckValidURL', { url: iframeUrl }, data => {
             // Check the result of the URL validation within the callback
-            if (data.valid) {
-                console.log("URL is valid:", data.message);
+            if (data.valid && data.iframeSupported) {
+                console.log("URL is valid and supports iframes:", data.message, data.iframeMessage);
                 // Update the tab name in the button
                 const tabButton = document.getElementById(`${tabId}-button`);
                 console.log(`Saving settings for tab ${tabId}`);
@@ -183,21 +139,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     iframe.src = iframeUrl;
                 }
             } else {
-                console.error('URL is invalid:', data.message, data.error);
-            }
-            if (!iframeUrl || !data.valid) {
-                console.error('Valid iframe URL is required');
-                return;
+                console.error('URL is invalid or does not support iframes:', data.message, data.error, data.iframeMessage);
             }
         });
     }
-    // Check if HartsyCore is loaded before proceeding
-    isHartsyCoreLoaded();
-    // Initialize the first UniversalTab on page load
-    updateOrAddTab('UniversalTab', 'UniversalTab', 'https://hartsy.ai');
-    // Add listener to the "Add New Tab" button
-    const addNewTabButton = document.getElementById('addNewTabButton');
-    if (addNewTabButton) {
-        addNewTabButton.addEventListener('click', addNewTab);
-    }
+    updateOrAddTab('UniversalTab-1', 'UniversalTab', 'https://hartsy.ai');
 });

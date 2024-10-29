@@ -31,7 +31,7 @@ The UniversalTab Extension for SwarmUI allows you to add a new tab that is an iF
 - Literally anything you want that supports iFrames.
 
 > [!WARNING]
-> [HartsyCore](https://github.com/HartsyAI/SwarmUI-HartsyCore) is a critical component for all Hartsy extensions. Ensure it is installed and functioning correctly before installing other Hartsy extensions.
+> Uninstall and remove HartsyCore Extension. It was removed to comply with the SwarmUI extension guidelines.
 > Always back up your SwarmUI configuration before making changes.
 
 ## Features
@@ -39,7 +39,7 @@ The UniversalTab Extension for SwarmUI allows you to add a new tab that is an iF
 
 * The deafult page is set to the Hartsy.AI homepage (This can be changed). You can also add as many new tabs as you would like.
 * Customize the URL of the webpage and the tab name to display in the new tab.
-* Currently, only one extra tab can be added, and it does not persist across refreshes or restarts.
+* Currently, extra tabs do not persist across refreshes or restarts. Support for this feature will be added in the future.
 
 > [!NOTE]
 > Future Features:
@@ -62,12 +62,12 @@ To install the UniversalTab Extension, follow these steps:
 1. Close your SwarmUI instance and navigate to the `SwarmUI/src/Extensions` directory.
 2. Clone the UniversalTab repository there. Open cmd and `cd` to the directory above and run `git clone https://github.com/your-repo/SwarmUI-UniversalTab`.
 3. Make sure you have run `update-windows.bat` or `update-linuxmac.sh` to recompile SwarmUI. This only needs to be done on first install.
-4. Restart your SwarmUI instance and refresh your browser. You should now have a new tab under the "Hartsy" tab called "UniversalTab".
+4. Restart your SwarmUI instance and refresh your browser. You should now have a new tab under the "Utilities" tab called "UniversalTab".
 
 ## Usage
 --------
 
-1. When you open your SwarmUI instance, navigate to the "Hartsy" tab.
+1. When you open your SwarmUI instance, navigate to the "Utilities" tab.                                  nmmmmm``
 2. Click on the "UniversalTab" sub-tab.
 3. Click on the settings icon to open the tab settings.
 4. To edit a tab: Enter the new name of the tab and teh URL of the webpage you want to display and click save.
@@ -91,6 +91,7 @@ If you encounter any issues, check these common solutions before you open an iss
 ------------
 
 * Version 0.1: Initial beta release
+* Version 0.2: Added the ability to add multiple tabs and the removal of HartsyCore dependency.
 
 ## License
 ----------
