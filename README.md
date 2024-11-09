@@ -85,7 +85,7 @@ If you encounter any issues, check these common solutions before you open an iss
 
 * Check the logs for any error messages or warnings.
 * Ensure that the extension is properly installed and configured.
-* If you still have issues, open an issue on GitHub or join the [Hartsy Discord Community](https://discord.gg/g9WxrANX4z).
+* If you still have issues, open an issue on GitHub or join the [Hartsy Discord Community](https://discord.gg/nWfCupjhbm).
 
 ## Changelog
 ------------
