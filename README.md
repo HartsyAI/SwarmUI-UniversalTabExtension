@@ -21,7 +21,7 @@
 ## Introduction
 ---------------
 
-The UniversalTab Extension for SwarmUI allows you to add a new tab that is an iFrame. This tab can display any webpage you want, providing a flexible way to integrate external content into your SwarmUI interface.
+The UniversalTab Extension for SwarmUI allows you to add new tabs that are iFrames. These tabs can display any webpage you want, providing a flexible way to integrate external content into your SwarmUI interface.
 
 * Usage Example:
 - Add your local LLM interface.
@@ -37,61 +37,78 @@ The UniversalTab Extension for SwarmUI allows you to add a new tab that is an iF
 ## Features
 ------------
 
-* The deafult page is set to the Hartsy.AI homepage (This can be changed). You can also add as many new tabs as you would like.
-* Customize the URL of the webpage and the tab name to display in the new tab.
-* Currently, extra tabs do not persist across refreshes or restarts. Support for this feature will be added in the future.
+* Create multiple universal tabs with custom names and URLs
+* Tabs persist across refreshes and restarts
+* Settings panel for each tab to customize name and URL
+* Add, edit, and delete tabs dynamically
+* Default page is set to the Hartsy.AI homepage
+* Automatic URL validation to ensure iFrame compatibility
+* Safe tab deletion with automatic default tab creation if all tabs are removed
 
 > [!NOTE]
 > Future Features:
-> Add the ability to persist tabs across refreshes and restarts.
-> Allow users Swarm instance to interact with the iFrame content.
+> - Allow users Swarm instance to interact with the iFrame content
+> - Tab reordering functionality
+> - Import/export tab configurations
 
 ## Prerequisites
 ----------------
 
-Before you install the UniversalTab Extension, ensure that you have the following prerequisites:
-
-* You need to have SwarmUI installed on your system. If you don't have it installed, you can download it from [here](https://github.com/mcmonkeyprojects/SwarmUI).
-* HartsyCore is required for this extension to function. Make sure to install the HartsyCore extension first.
+Before you install the UniversalTab Extension, ensure that you have SwarmUI installed on your system. If you don't have it installed, you can download it from [here](https://github.com/mcmonkeyprojects/SwarmUI).
 
 ## Installation
 --------------
 
-To install the UniversalTab Extension, follow these steps:
+### Preferred Method (Via SwarmUI)
 
-1. Close your SwarmUI instance and navigate to the `SwarmUI/src/Extensions` directory.
-2. Clone the UniversalTab repository there. Open cmd and `cd` to the directory above and run `git clone https://github.com/your-repo/SwarmUI-UniversalTab`.
-3. Make sure you have run `update-windows.bat` or `update-linuxmac.sh` to recompile SwarmUI. This only needs to be done on first install.
-4. Restart your SwarmUI instance and refresh your browser. You should now have a new tab under the "Utilities" tab called "UniversalTab".
+1. Open your SwarmUI instance
+2. Navigate to the Server → Extensions tab
+3. Find "UniversalTab Extension" in the list
+4. Click the Install button
+5. Restart SwarmUI when prompted
+
+### Manual Installation
+
+If you prefer to install manually:
+
+1. Close your SwarmUI instance and navigate to the `SwarmUI/src/Extensions` directory
+2. Clone the UniversalTab repository: `git clone https://github.com/your-repo/SwarmUI-UniversalTab`
+3. Run `update-windows.bat` or `update-linuxmac.sh` to recompile SwarmUI
+4. Restart your SwarmUI instance and refresh your browser
 
 ## Usage
 --------
 
-1. When you open your SwarmUI instance, navigate to the "Utilities" tab.                                  nmmmmm``
-2. Click on the "UniversalTab" sub-tab.
-3. Click on the settings icon to open the tab settings.
-4. To edit a tab: Enter the new name of the tab and teh URL of the webpage you want to display and click save.
-5. To add a new tab: Click on the "Add New Tab" button and enter the name of the tab and the URL of the webpage you want to display.
+1. Navigate to the "Utilities" tab in SwarmUI
+2. Click on the "UniversalTab" sub-tab
+3. Use the settings icon (⚙️) to:
+   - Edit tab name and URL
+   - Add new tabs
+   - Delete tabs
+4. Changes are automatically saved and will persist across sessions
 
 ## Configuration
 ----------------
 
-The UniversalTab Extension does not require any configuration. Simply enter the URL of the webpage you want to display in the tab settings.
+The UniversalTab Extension saves its configuration automatically. No manual configuration is required. Your tabs and their settings will be preserved across sessions.
 
 ## Troubleshooting
 -----------------
 
-If you encounter any issues, check these common solutions before you open an issue on GitHub.
+If you encounter any issues, check these common solutions:
 
-* Check the logs for any error messages or warnings.
-* Ensure that the extension is properly installed and configured.
-* If you still have issues, open an issue on GitHub or join the [Hartsy Discord Community](https://discord.gg/nWfCupjhbm).
+* Check the logs for any error messages or warnings
+* Ensure that the webpage you're trying to load supports iFrames
+* If a tab doesn't load, try using the settings panel to verify the URL
+* Make sure you have the necessary permissions to access the URLs
+* If you still have issues, open an issue on GitHub or join the [Hartsy Discord Community](https://discord.gg/nWfCupjhbm)
 
 ## Changelog
 ------------
 
 * Version 0.1: Initial beta release
-* Version 0.2: Added the ability to add multiple tabs and the removal of HartsyCore dependency.
+* Version 0.2: Added the ability to add multiple tabs
+* Version 0.3: Added tab persistence, settings panel improvements, and URL validation
 
 ## License
 ----------
@@ -99,15 +116,9 @@ If you encounter any issues, check these common solutions before you open an iss
 Hartsy Extensions including this one are licensed under the [MIT License](https://opensource.org/licenses/MIT).
 
 ## Contributing
----------------
+--------------
 
-Contributions to the extension are welcome. Please ask before working on anything big. I may already be working on it.
-
-Join the Discord server to ask questions or get help with the extension. You can also open an issue on GitHub if you encounter any bugs or have feature requests.
-
-1. Fork the extension's repository on GitHub.
-2. Make your changes and commit them to your fork.
-3. Open a pull request and wait for a review.
+We welcome contributions! Please feel free to submit a Pull Request.
 
 ## Acknowledgments
 ------------------
