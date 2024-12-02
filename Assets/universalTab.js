@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Initializes the application after the DOM is fully loaded.
  * Adds event listeners and prepares the first universal tab.
  */
@@ -41,6 +41,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         </div>
                         <button id="saveSettingsButton-${tabId}" class="basic-button translate">Save</button>
                         <button id="addNewTabButton-${tabId}" class="basic-button translate">Add New Tab</button>
+                        <button id="deleteTabButton-${tabId}" class="basic-button btn-danger translate">Delete Tab</button>
                     </div>
                     <button id="settingsToggleButton-${tabId}" class="btn btn-secondary" style="position:absolute; top:10px; right:10px; z-index:1000;">⚙️</button>
                     <iframe id="universalIframe-${tabId}" src="${iframeUrl}" style="height: 100vh; width: 100vw;"></iframe>
@@ -81,6 +82,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById(`settingsToggleButton-${tabId}`).addEventListener('click', () => toggleSettingsPanel(tabId));
         document.getElementById(`saveSettingsButton-${tabId}`).addEventListener('click', () => saveSettings(tabId));
         document.getElementById(`addNewTabButton-${tabId}`).addEventListener('click', () => addNewTab());
+        document.getElementById(`deleteTabButton-${tabId}`).addEventListener('click', () => removeTab(tabId));
     }
 
     /**
@@ -109,6 +111,101 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     /**
+     * Saves all tab data to persistent storage
+     */
+    async function saveTabsToStorage() {
+        const tabs = [];
+        const tabPanes = document.querySelectorAll('.tab-pane');
+        tabPanes.forEach(pane => {
+            const tabId = pane.id;
+            const tabButton = document.getElementById(`${tabId}-button`);
+            const iframe = document.getElementById(`universalIframe-${tabId}`);
+            if (tabButton && iframe) {
+                tabs.push({
+                    id: tabId,
+                    name: tabButton.textContent,
+                    url: iframe.src
+                });
+            }
+        });
+        await genericRequest('SaveTabs', {
+            data: JSON.stringify(tabs)
+        });
+    }
+
+    /**
+     * Loads saved tabs from storage
+     */
+    async function loadTabsFromStorage() {
+        await genericRequest('LoadSavedTabs', {}, response => {
+            if (response && response.success && response.data) {
+                try {
+                    const tabs = JSON.parse(response.data);
+                    // Get the utilities tab container
+                    const utilitiesTab = document.getElementById('utilities_tab');
+                    if (!utilitiesTab) {
+                        console.error('Utilities tab content not found. Unable to load tabs.');
+                        return;
+                    }
+                    let tabList = utilitiesTab.querySelector('.nav-tabs');
+                    let tabContentContainer = utilitiesTab.querySelector('.tab-content');
+                    if (!tabList || !tabContentContainer) {
+                        console.error('Utilities tab navigation or content container not found. Cannot load tabs.');
+                        return;
+                    }
+                    // Remove only our universal tabs if they exist
+                    const existingUniversalTabs = tabList.querySelectorAll('[id^="UniversalTab-"]');
+                    existingUniversalTabs.forEach(tab => tab.remove());
+                    const existingUniversalContent = tabContentContainer.querySelectorAll('[id^="UniversalTab-"]');
+                    existingUniversalContent.forEach(content => content.remove());
+                    // Add saved universal tabs
+                    if (tabs && tabs.length > 0) {
+                        tabs.forEach(tab => {
+                            updateOrAddTab(tab.id, tab.name, tab.url);
+                        });
+                    } else {
+                        // No saved tabs, create default tab
+                        updateOrAddTab('UniversalTab-1', 'UniversalTab', 'https://hartsy.ai');
+                    }
+                } catch (e) {
+                    console.error('Error loading saved tabs:', e);
+                    // If loading fails, create a default tab
+                    updateOrAddTab('UniversalTab-1', 'UniversalTab', 'https://hartsy.ai');
+                }
+            } else {
+                // No saved tabs, create default tab
+                updateOrAddTab('UniversalTab-1', 'UniversalTab', 'https://hartsy.ai');
+            }
+        });
+    }
+
+    /**
+     * Removes a tab and its content, then updates storage
+     * @param {string} tabId - The ID of the tab to remove
+     */
+    async function removeTab(tabId) {
+        const tabButton = document.getElementById(`${tabId}-button`).closest('.nav-item');
+        const tabContent = document.getElementById(tabId);
+        // If this is the active tab, activate another tab first
+        if (tabButton.querySelector('.nav-link.active')) {
+            const otherTab = document.querySelector('.nav-link:not(.active)');
+            if (otherTab) {
+                otherTab.click();
+            }
+        }
+        // Remove the elements
+        if (tabButton) tabButton.remove();
+        if (tabContent) tabContent.remove();
+        // Save the updated tabs
+        await saveTabsToStorage();
+        // If no tabs left, create a default one
+        const remainingTabs = document.querySelectorAll('.tab-pane');
+        if (remainingTabs.length === 0) {
+            updateOrAddTab('UniversalTab-1', 'UniversalTab', 'https://hartsy.ai');
+        }
+    }
+
+    /**
      * Saves the settings for a given tab.
      * Updates the tab name and iframe URL based on user input.
      *
@@ -121,7 +218,7 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error('Tab name is required');
             return;
         }
-        await genericRequest('CheckValidURL', { url: iframeUrl }, data => {
+        await genericRequest('CheckValidURL', { url: iframeUrl }, async data => {
             // Check the result of the URL validation within the callback
             if (data.valid && data.iframeSupported) {
                 console.log("URL is valid and supports iframes:", data.message, data.iframeMessage);
@@ -138,10 +235,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (iframe) {
                     iframe.src = iframeUrl;
                 }
+                // Save the updated tabs
+                await saveTabsToStorage();
             } else {
                 console.error('URL is invalid or does not support iframes:', data.message, data.error, data.iframeMessage);
             }
         });
     }
-    updateOrAddTab('UniversalTab-1', 'UniversalTab', 'https://hartsy.ai');
+    loadTabsFromStorage();
 });
