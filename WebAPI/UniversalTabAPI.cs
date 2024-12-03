@@ -1,5 +1,6 @@
-﻿using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Linq;
 using SwarmUI.Accounts;
+using SwarmUI.Core;
 using SwarmUI.Utils;
 using SwarmUI.WebAPI;
 using System.Net;
@@ -15,12 +16,16 @@ namespace Hartsy.Extensions.UniversalTabExtension.WebAPI
         public static class UniversalTabPermissions
         {
             public static readonly PermInfoGroup UniversalTabPermGroup = new("UniversalTab", "Permissions related to URL validation and iframe compatibility checks for UniversalTabExtension.");
-            public static readonly PermInfo PermURLValidation = Permissions.Register(new("universal_url_validation", "URL Validation", "Allows the user to validate URLs for iframe compatibility.", PermissionDefault.POWERUSERS, UniversalTabPermGroup));
+            public static readonly PermInfo PermURLValidation = Permissions.Register(new("universal_url_validation", "URL Validation", "Allows the user to validate URLs for iframe compatibility.", PermissionDefault.USER, UniversalTabPermGroup));
+            public static readonly PermInfo PermTabData = Permissions.Register(new("universal_tab_data", "Tab Data Management", "Allows the user to save and retrieve tab data.", PermissionDefault.USER, UniversalTabPermGroup));
+            public static readonly PermInfo PermSaveTab = Permissions.Register(new("universal_tab_data_admin", "Tab Data Management (Admin)", "Allows the user to manage tab data for all users.", PermissionDefault.USER, UniversalTabPermGroup));
         }
 
         public static void Register()
         {
             API.RegisterAPICall(CheckValidURL, false, UniversalTabPermissions.PermURLValidation);
+            API.RegisterAPICall(LoadSavedTabs, false, UniversalTabPermissions.PermTabData);
+            API.RegisterAPICall(SaveTabs, false, UniversalTabPermissions.PermSaveTab);
         }
 
         /// <summary>Validates a given URL and determines whether it can be safely loaded in an iframe.</summary>
@@ -99,6 +104,58 @@ namespace Hartsy.Extensions.UniversalTabExtension.WebAPI
                 response["error"] = ex.Message;
             }
             return response;
+        }
+
+        /// <summary>Loads saved tab data from the user's session storage.</summary>
+        /// <returns>A JSON response containing the saved tabs data or error information.</returns>
+        public static Task<JObject> LoadSavedTabs()
+        {
+            try
+            {
+                string data = Program.Sessions.GenericSharedUser.GetGenericData("UniversalTab", "SavedTabs");
+                return Task.FromResult(new JObject
+                {
+                    ["success"] = true,
+                    ["data"] = data ?? "[]"
+                });
+            }
+            catch (Exception ex)
+            {
+                Logs.Error($"Error loading saved tabs: {ex.Message}");
+                return Task.FromResult(new JObject
+                {
+                    ["success"] = false,
+                    ["message"] = "Failed to load saved tabs",
+                    ["error"] = ex.Message
+                });
+            }
+        }
+
+        /// <summary>Saves tab data to the user's session storage.</summary>
+        /// <param name="data">The tab data to save as a string (typically JSON).</param>
+        /// <returns>A JSON response indicating success or failure.</returns>
+        public static Task<JObject> SaveTabs(
+            [API.APIParameter("Tab data to save")] string data)
+        {
+            try
+            {
+                Program.Sessions.GenericSharedUser.SaveGenericData("UniversalTab", "SavedTabs", data);
+                return Task.FromResult(new JObject
+                {
+                    ["success"] = true,
+                    ["message"] = "Tabs saved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                Logs.Error($"Error saving tabs: {ex.Message}");
+                return Task.FromResult(new JObject
+                {
+                    ["success"] = false,
+                    ["message"] = "Failed to save tabs",
+                    ["error"] = ex.Message
+                });
+            }
         }
     }
 }
